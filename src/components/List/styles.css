@@ -1,0 +1,14 @@
+.list {
+}
+
+.edit-btn {
+  background-color: #3069fd;
+  color: #fff;
+  cursor: pointer;
+}
+
+.delete-btn {
+  background-color: #d02c3f;
+  color: #fff;
+  cursor: pointer;
+}
