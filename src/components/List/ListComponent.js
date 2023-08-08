@@ -4,30 +4,24 @@ import "./styles.css";
 import CreateComponent from "../Create";
 import UpdateComponent from "../Update";
 import axios from "axios";
+import TableRowComponent from "../TableRow";
 
 export default function ListComponent() {
-  const [inputValues, setInputValues] = useState({
-    username: "",
-    email: "",
-    phone: "",
-  });
   const [displayCreate, setDisplayCreate] = useState(false);
   const [displayUpdate, setDisplayUpdate] = useState(false);
   const [data, setData] = useState([]);
-
+  const [selectedUserId, setSelectedUserId] = useState(null);
+  console.log({ data });
   useEffect(() => {
     fetchData();
-  }, [data]);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setInputValues({ ...inputValues, [name]: value });
-  };
+  }, []);
 
   const fetchData = () => {
     axios
       .get("http://localhost:3030/data")
-      .then((response) => setData(response.data))
+      .then((response) => {
+        setData(response.data);
+      })
       .catch((error) => {
         console.log("Error fetching data: ", error);
       });
@@ -38,9 +32,10 @@ export default function ListComponent() {
     setDisplayUpdate(false);
   };
 
-  const handleUpdateUser = () => {
-    setDisplayUpdate(!displayUpdate);
+  const handleUpdateUser = (id) => {
+    setDisplayUpdate(true);
     setDisplayCreate(false);
+    setSelectedUserId(id);
   };
 
   const handleUserAdded = () => {
@@ -52,7 +47,7 @@ export default function ListComponent() {
     axios
       .delete(`http://localhost:3030/data/${id}`)
       .then((response) => {
-        console.log(response);
+        fetchData();
       })
       .catch((error) => {
         console.log(error);
@@ -76,31 +71,12 @@ export default function ListComponent() {
               <tbody>
                 {data &&
                   data.map((item) => (
-                    <tr key={item.id}>
-                      <th scope="row">{item.id}</th>
-                      <td>{item.name}</td>
-                      <td>{item.address}</td>
-                      <td className="d-flex">
-                        <div
-                          className="edit-btn px-2 py-1 mr-2 rounded-top rounded-bottom"
-                          onClick={handleUpdateUser}
-                        >
-                          <i
-                            className="fa fa-pencil-square-o"
-                            aria-hidden="true"
-                          ></i>
-                        </div>
-                        <button
-                          className="delete-btn px-2 py-1 rounded-top rounded-bottom"
-                          onClick={() => handleDeleteUser(item.id)}
-                        >
-                          <i
-                            className="fa fa-times delete-btn"
-                            aria-hidden="true"
-                          ></i>
-                        </button>
-                      </td>
-                    </tr>
+                    <TableRowComponent
+                      key={item.id}
+                      item={item}
+                      handleUpdateUser={handleUpdateUser}
+                      handleDeleteUser={handleDeleteUser}
+                    />
                   ))}
               </tbody>
             </table>
@@ -111,7 +87,15 @@ export default function ListComponent() {
           </div>
         </div>
         {displayCreate && <CreateComponent onUserAdded={handleUserAdded} />}
-        {displayUpdate && <UpdateComponent />}
+        {displayUpdate && (
+          <UpdateComponent
+            userId={selectedUserId}
+            onUserUpdate={() => {
+              setDisplayUpdate(false);
+              fetchData();
+            }}
+          />
+        )}
         {displayCreate === false && displayUpdate === false && (
           <div className="col mt-4 "></div>
         )}
